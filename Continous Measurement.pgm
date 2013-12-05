@@ -1,0 +1,409 @@
+rem bug and updates report
+rem 28/10/2012 replaced software accumulation mode with manual accumulation mode. Manual accumulation is a simple summation of single measurements. 
+rem            Software accumulation mode was found faulty with regards to accuracy and stability, whereas single measurement was found reliable.
+rem 29/10/2012 Add ContinousMeasurementFlag = 1 for continous measurement and 0 for a single measurment
+rem 30/10/2012 added a delay before each single measurement and a BG before each single measurement
+
+rem recieves filename and returns the number of lines in file
+function ~NumberOfLinesInFile(FileName$)
+rem pseudo read
+ error = read("a", d$)
+ LineNumber=0
+ while (read(FileName$, st$) == 0)
+   if len(st$) != 255 then
+    LineNumber=LineNumber+1
+   endif
+ rem  print LineNumber
+ wend
+  NumberOfLinesInFile=LineNumber
+return
+
+
+rem first make sure 365 (Track 2) is in upper half of the ccd and the 405 is in the lower part of the CCD (Track 1)
+rem second if you want to change to order in which they print into the file
+rem set acquisition paratmeters
+  rem close()
+  FilePath$="C:\Users\DMA2011\Desktop\Lior\\"
+  FileName$="photodiode test experiment 3 06032012"
+
+  
+  NumAccumulation = 1 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumExposureTime =0.01      :rem sec
+  ContinousMeasurementFlag =1 : rem 1 continous measurement, 0 single measurement
+  NumberofMeasurementinaSingleMeasurement = 3
+  
+  f$= FilePath$ + FileName$ + ".txt"
+  foutput$ = FilePath$ + FileName$ + "report.txt" 
+  SensorTemp = -50			  :rem celcius
+  TotalCavityLength405 = 79.2 :rem cm
+  TotalCavityLength365 = 79.1 :rem cm
+  FillLength405 = 64.8		  :rem cm
+  FillLength365 = 64.6 	 	  :rem cm
+  PurgeLEDside405 = 39.1	  :rem cc/min
+  PurgeFiberSide405 = 44.2	  :rem cc/min
+  PurgeLEDside365 = 41.5	  :rem cc/min
+  PurgeFiberSide365 = 47.8	  :rem cc/min
+  NumberOfPointsInGraph = 3000
+  
+  rem definition of rows which belong to either 405 or 365 cavity
+  StartRow365 = 1 :rem 172
+  FinishRow365 = 47 :rem 256
+  StartRow405 = 172 :rem 1
+  FinishRow405 = 256 :rem 47
+  
+  rem StartRow365 = 172
+  rem FinishRow365 = 256
+  rem StartRow405 = 1
+  rem FinishRow405 = 47
+  
+  NumberOfLinesInHeader = 15
+  
+  
+  NumSeries = 1       :rem do not touch this parameter. it is here from historic reasons
+  
+  SetKinetics(NumExposureTime, NumAccumulation, 0, NumSeries,0)
+  
+  SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
+  SetTriggerMode(0)                  :rem Internal triggering
+   SetReadOutMode(4)                  :rem Image mode
+   
+
+   
+ rem  SetNumberTracks(2)		         :rem we have two cavities
+ rem  SetMultiTrackHeight(80)             :rem Each track is 4 rows in height
+ rem  SetTrackOffset(128)                  :rem Track positions symmetrical
+ rem  SetTemperature(SensorTemp)         : rem Set sensor temperature
+ rem  cooler(1)							 : rem Start the cooler
+  SetShutter(2, 1)   				     : rem mode 2 - auto, output TTL high 1
+  SetShutterTransferTime(0.05)	         : rem 50 ms to open and close
+  
+  
+  rem setup user interface
+create(#1,"365 nm Cavity",NumberOfPointsInGraph,1)
+ create(#2,"405 nm Cavity",NumberOfPointsInGraph,1)
+ create(#3,"365 nm Cavity",1024,1)
+ create(#4,"405 nm Cavity",1024,1)
+ ChangeDisplay(#1,3)
+ ChangeDisplay(#2,3)
+ ChangeDisplay(#3,3)
+ ChangeDisplay(#4,3)
+ movewindow(#1,0,0,450,450)
+ movewindow(#2,0,450,450,450)
+ movewindow(#3,450,0,450,450)
+ movewindow(#4,450,450,450,450)
+
+ output(900,0,450,450)
+ 
+ SetXLabel(#4,2,1)
+ SetXLabel(#3,2,1)
+ 
+ SetXLabel(#1,5,2)
+ SetXLabel(#2,5,2)
+ scalex(#3,450,687)
+ scalex(#4,450,687)
+ scaleFlag=1
+ 
+rem take background
+rem SetKinetics(NumExposureTime, NumAccumulation, 0, 1,0)
+SetSingleScan(NumExposureTime)
+SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+run()
+movewindow(#0,900,450,450,300)
+rem to take continous measurements I am placing an infinite loop here
+InfiniteLoopIndex = 1
+counter = 1
+
+create(#5,"temp",1024,256)
+MinimizeWindow(#5)
+
+while InfiniteLoopIndex < NumberofMeasurementinaSingleMeasurement+1
+
+rem take background
+rem SetKinetics(NumExposureTime, NumAccumulation, 0, 1,0)
+SetSingleScan(NumExposureTime)
+SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+run()
+
+rem take acquisition
+rem SetKinetics(NumExposureTime, NumAccumulation, 0, NumSeries,0)
+SetSingleScan(NumExposureTime)
+SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
+starttime$=time$()
+startdate$=date$()
+
+rem expose camera to light!
+update(0)
+run()
+rem I have to run this twice, because of a bug in the spectrometer
+run() 
+
+
+#5=#0
+if (NumAccumulation > 1) then
+  rem   SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+	rem run()
+  
+  for NumExposure=1 to NumAccumulation-1
+    rem delay(1000)
+    rem delay(10)
+   rem   SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
+   rem  print "before " + date$() + " " + time$()	
+    run()
+   rem	 print "after " + date$() + " " + time$() 
+   	rem  ShowTimings()
+    #5=#5+#0 
+  next
+   
+  #0=#5
+endif
+update(1)
+
+rem find 405 and 365 indices
+delta365 = abs(xcal(#0,1)-365)
+i365=1
+delta405 = abs(xcal(#0,1)-405)
+i405=1
+
+for i = 2 to 1024
+
+ if (abs(xcal(#0,i)-365)<delta365) then
+   k365=i
+   delta365=abs(xcal(#0,i)-365)
+ endif
+
+ if (abs(xcal(#0,i)-405)<delta405) then
+   k405=i
+   delta405=abs(xcal(#0,i)-405)
+ endif
+
+next  
+
+rem change x axis according to calibration according to the outside program
+coef$ = coefficient$(#0)
+rem print coef$
+Number$=""
+lengthcoef = len(coefficient$(#0))
+i=1
+
+temp$ = left$(coef$,1)
+while (strcomp(temp$, ",")!=0)
+ 
+  Number$ = Number$ + temp$
+  coef$ = right$(coef$,lengthcoef-i)
+  i=i+1
+   temp$ = left$(coef$,1)
+wend
+P1=val(Number$)
+
+
+
+coef$ = right$(coef$,lengthcoef-i)
+rem print coef$
+Number$=""
+temp$ = left$(coef$,1)
+while (strcomp(temp$, ",")!=0)
+ 
+  Number$ = Number$ + temp$
+  i=i+1
+  coef$ = right$(coef$,lengthcoef-i)
+  temp$ = left$(coef$,1)
+wend
+P2=val(Number$)
+
+
+i=i+1
+coef$ = right$(coef$,lengthcoef-i)
+rem  print coef$
+Number$=""
+temp$ = left$(coef$,1)
+while (strcomp(temp$, ",")!=0)
+ 
+  Number$ = Number$ + temp$
+  i=i+1
+  coef$ = right$(coef$,lengthcoef-i)
+  temp$ = left$(coef$,1)
+wend
+P3=val(Number$)
+
+
+P4= val( right$(coef$,lengthcoef-i-1))
+
+
+SetCoefficient(#0,P1,P2,P3,P4)
+SetCoefficient(#4,P1,P2,P3,P4)
+SetCoefficient(#3,P1,P2,P3,P4)
+ 
+rem prepare to write X axis and header
+rem Total length of cavity
+rem Fill length (geometrical)
+rem Odd row refer to: 405 nm
+rem Even row refer to: 265
+rem Aquisition time:
+rem Exposure time:
+rem Line Number, Time Stamp, Temperature (celcius), Pressure (mbar), Concentration (N/cm^3), Counts
+if (exist(f$) != 1) then
+	
+    write(f$, "Total length of cavity 405 (cm): ", str$(TotalCavityLength405))
+	write(f$, "Total length of cavity 365 (cm): ", str$(TotalCavityLength365))
+	write(f$, "Fill Length (geometrical) 405 (cm): ", str$(FillLength405))
+	write(f$, "Fill Length (geometrical) 365 (cm): ", str$(FillLength365))
+	write(f$, "Purge Flow LED side 405 nm (cc/min): ",str$(PurgeLEDside405))
+	write(f$, "Purge Flow Fiber side 405 nm (cc/min): ",str$(PurgeFiberSide405))
+	write(f$, "Purge Flow LED side 365 nm (cc/min): ",str$(PurgeLEDside365))
+	write(f$, "Purge Flow Fiber side 365 nm (cc/min): ",str$(PurgeFiberSide365))
+	write(f$, "Odd rows refer to 405 nm LED wavelength")
+	write(f$, "Even rows refer to 365 nm LED wavelength")
+	write(f$, "Acquisition parameters:")
+	write(f$, "Exposure time (sec): ", str$(NumExposureTime))
+	write(f$, "Accumulation :", str$(NumAccumulation))
+	
+	rem write x coordinate which are the wavelength in nm
+	Cal$ = ""
+	for i = 1 to 1024
+  		Cal$ = Cal$ + str$(xcal(#0,i)) + ", "
+	next
+	write(f$, Cal$)
+	
+	rem Header for rows
+	write(f$,"Line number, Time stamp, Temperature(deg), Temperature Uncertainty(deg), Pressure(mbar), Pressure Uncertainty(mbar, Concentration(N/cm^3), Concentration Uncertainty(N/cm^3), Counts")
+	LineNumbers= NumberOfLinesInHeader
+	else
+	LineNumbers= ~NumberOfLinesInFile(f$)
+
+endif
+
+rem prepare to write Y axis
+Cavity405$=""
+Cavity365$=""
+
+rem print("These Lines were written to file")
+for j=1 to NumSeries
+
+
+ 
+	rem Line number
+	rem Calculate Line Number
+	
+	LineNumber$=str$(LineNumbers-NumberOfLinesInHeader)
+	Cavity365$= Cavity365$ + LineNumber$ + ", "
+	Cavity405$= Cavity405$ + str$(val(LineNumber$)+1) + ", "		
+	
+	
+	rem Time stamp
+	Cavity405$= Cavity405$ + date$() + " " + time$() + ", "
+	Cavity365$= Cavity365$ + date$() + " " + time$() + ", "
+	
+	rem Temperature
+	rem Read Temperature for temperature controller
+	Temprature$= "0.0"
+	TempUncertain$= "0.0"
+	read("C:\Users\DMA2011\Desktop\Temperature.txt",Temprature$)
+  
+	Cavity405$= Cavity405$ + Temprature$ + ", " + TempUncertain$ + ", "
+	Cavity365$= Cavity365$ + Temprature$ + ", " + TempUncertain$ + ", " 
+	
+	rem Pressure
+	rem Read Pressure from pressure gauge
+	Pressure$ = "0.0" 
+	PressureUncertain$ = "0.0"
+	read("C:\Users\DMA2011\Desktop\Pressure.txt",Pressure$)
+	Cavity405$= Cavity405$ + Pressure$ + ", " + PressureUncertain$ + ", "
+	Cavity365$= Cavity365$ + Pressure$ + ", " + PressureUncertain$ + ", "
+	
+	rem Concentration
+	rem Read Concentration from CPC
+	Concentration$ ="0.0" 
+	ConcentrationUncertain$ = "0.0"
+	Cavity405$= Cavity405$ + Concentration$ + ", " + ConcentrationUncertain$ + ", "
+	Cavity365$= Cavity365$ + Concentration$	+ ", " + ConcentrationUncertain$ + ", "
+	
+	
+	rem Counts
+	update(0)
+	for i=1 to 1024
+	  if (i==1024) then
+	  update(1)
+	  endif
+	    rem find the accumulated counts in column i for the 405 for column 1 to 47
+	    temp405=0
+	    for k=StartRow405 to FinishRow405 
+	      temp405 = temp405 + #0{j}(i,k)
+	    next
+	    
+	    if (i==k405) then
+	      counts405 = temp405/NumAccumulation
+	      
+	    endif
+	    
+		Cavity405$ = Cavity405$ + str$(temp405/NumAccumulation) + ", "
+		#4[i]=temp405/NumAccumulation
+		
+		temp365 = 0
+		for k=StartRow365 to FinishRow365
+		  temp365 = temp365 + #0{j}(i,k)
+		next
+		
+		 if (i==k365) then
+	      counts365 = temp365/NumAccumulation
+	     endif
+	    
+		Cavity365$ = Cavity365$ + str$(temp365/NumAccumulation) + ", "
+		#3[i]=temp365/NumAccumulation
+		
+	next
+	
+	
+	
+	if (scaleFlag==1) then
+ 	 		  scalex(#1,1,NumberOfPointsInGraph)
+		 	  scalex(#2,1,NumberOfPointsInGraph)
+		      scaledata(#2,counts405*0.5,counts405*1.5)
+		      scaledata(#1,counts365*0.5,counts365*1.5)
+		      rescale(#3)
+	 	      rescale(#4)
+		      scaleFlag=0
+    endif
+	 #2[counter]= counts405
+	 #1[counter]= counts365
+	
+	rem print "Start: " + startdate$ + " " + starttime$
+	print LineNumber$ +": number of counts at 365 is " + str$(counts365)
+	print str$(val(LineNumber$) + 1) + ": number of counts at 405 is " + str$(counts405)
+	print "Timestamp: " + date$() + " " + time$()
+	print " "
+	write(foutput$, LineNumber$ +": number of counts at 365 is " + str$(counts365))
+	write(foutput$, str$(val(LineNumber$) + 1) + ": number of counts at 405 is " + str$(counts405))
+	write(foutput$, "Timestamp: " + date$() + " " + time$())
+	LineNumbers=LineNumbers+2
+	counter=counter+1
+	
+	if (mod(counter,NumberOfPointsInGraph)==0) then
+ 	for p=1 to NumberOfPointsInGraph
+ 	  #1(p)=0
+ 	  #2(p)=0
+ 	next
+ 	counter=1
+ 	endif
+	
+	write(f$, Cavity365$)
+	write(f$, Cavity405$)
+	Cavity405$=""
+	Cavity365$=""
+	
+	rem show the data of the two cavities
+	
+next
+
+rem end of infinite loop
+
+if (ContinousMeasurementFlag==0) then
+  InfiniteLoopIndex = InfiniteLoopIndex+1
+endif
+
+rem a delay for 30 minutes
+rem for delaycounter=1 to 180
+rem  delay(10000)
+rem next 
+
+wend
+

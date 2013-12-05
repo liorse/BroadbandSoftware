@@ -1,0 +1,185 @@
+ 
+  NumExposureTime =0.3       :rem sec
+  
+  
+  StartRow405 = 172
+  FinishRow405 = 256
+  StartRow365 = 1
+  FinishRow365 = 47
+  SetSingleScan(NumExposureTime)
+  
+  SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
+  SetTriggerMode(0)                  :rem Internal triggering
+   SetReadOutMode(4)                  :rem Image
+  rem SetNumberTracks(2)		         :rem we have two cavities
+  rem SetMultiTrackHeight(120)             :rem Each track is 4 rows in height
+  rem SetTrackOffset(0)                  :rem Track positions symmetrical
+  SetShutter(2, 1)   				     : rem mode 2 - auto, output TTL high 1
+  SetShutterTransferTime(0.05)	         : rem 50 ms to open and close
+
+ SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+ run()
+ SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
+ run()
+ create(#1,"365 nm Cavity",10000,1)
+ create(#2,"405 nm Cavity",10000,1)
+ create(#3,"365 nm Cavity",1024,1)
+ create(#4,"405 nm Cavity",1024,1)
+ ChangeDisplay(#1,3)
+ ChangeDisplay(#2,3)
+ ChangeDisplay(#3,3)
+ ChangeDisplay(#4,3)
+ movewindow(#1,0,0,450,450)
+ movewindow(#2,0,450,450,450)
+ movewindow(#3,450,0,450,450)
+ movewindow(#4,450,450,450,450)
+ movewindow(#0,900,450,450,300)
+  output(900,0,450,450)
+ 
+ SetXLabel(#4,2,1)
+ SetXLabel(#3,2,1)
+ rem change x axis according to calibration according to the outside program
+coef$ = coefficient$(#0)
+rem print coef$
+Number$=""
+lengthcoef = len(coefficient$(#0))
+i=1
+
+temp$ = left$(coef$,1)
+while (strcomp(temp$, ",")!=0)
+ 
+  Number$ = Number$ + temp$
+  coef$ = right$(coef$,lengthcoef-i)
+  i=i+1
+   temp$ = left$(coef$,1)
+wend
+P1=val(Number$)
+
+
+
+coef$ = right$(coef$,lengthcoef-i)
+rem print coef$
+Number$=""
+temp$ = left$(coef$,1)
+while (strcomp(temp$, ",")!=0)
+ 
+  Number$ = Number$ + temp$
+  i=i+1
+  coef$ = right$(coef$,lengthcoef-i)
+  temp$ = left$(coef$,1)
+wend
+P2=val(Number$)
+
+
+i=i+1
+coef$ = right$(coef$,lengthcoef-i)
+rem  print coef$
+Number$=""
+temp$ = left$(coef$,1)
+while (strcomp(temp$, ",")!=0)
+ 
+  Number$ = Number$ + temp$
+  i=i+1
+  coef$ = right$(coef$,lengthcoef-i)
+  temp$ = left$(coef$,1)
+wend
+P3=val(Number$)
+
+
+P4= val( right$(coef$,lengthcoef-i-1))
+
+
+SetCoefficient(#0,P1,P2,P3,P4)
+SetCoefficient(#4,P1,P2,P3,P4)
+SetCoefficient(#3,P1,P2,P3,P4)
+ 
+ SetXLabel(#1,5,2)
+ SetXLabel(#2,5,2)
+ i=1
+ j=1
+ rem for 405 find the index automatically
+ rem for 365 find the index automatically
+ 
+delta365 = abs(xcal(#0,1)-365)
+i365=1
+delta405 = abs(xcal(#0,1)-405)
+i405=1
+
+for t = 2 to 1024
+
+if (abs(xcal(#0,t)-365)<delta365) then
+  k365=t
+  delta365=abs(xcal(#0,t)-365)
+endif
+
+if (abs(xcal(#0,t)-405)<delta405) then
+  k405=t
+  delta405=abs(xcal(#0,t)-405)
+endif
+
+next  
+
+ 
+scaleFlag=1
+ while i<2
+ 	run()
+ 	rem average on rows for 365 cavity
+ 	temp365=0
+ 	for k=StartRow365 to FinishRow365
+ 	  temp365 = temp365 + #0(k365,k)
+ 	next
+ 	
+ 	rem average on rows for 405 cavity
+ 	temp405=0 
+ 	for k=StartRow405 to FinishRow405
+ 	  temp405=temp405 + #0(k405,k)
+ 	next
+ 	#1[j]=temp365
+	#2[j]=temp405
+ 	if (scaleFlag==1) then
+ 	  scalex(#1,1,1000)
+ 	  scalex(#2,1,1000)
+ 	  scaledata(#1,temp365*0.5,temp365*1.5)
+ 	  scaledata(#2,temp405*0.5,temp405*1.5)
+ 	
+ 	endif
+ 	print str$(temp365) + " from 365"
+ 	print str$(temp405) + " from 405"
+ 	
+ 	 update(0)
+ 	rem Show signals
+ 	for l=1 to 1024
+ 	
+ 	  temp365=0
+ 	  for k=StartRow365 to FinishRow365
+ 	    temp365 = temp365 + #0(l,k)
+ 	  next
+ 	  #3[l]=temp365
+ 	
+   	rem average on rows for 405 cavity
+   	  temp405=0 
+ 	  for k=StartRow405 to FinishRow405
+ 	    temp405=temp405 + #0(l,k)
+ 	  next
+ 	  #4[l]=temp405
+ 	  
+ 	next
+ 	update(1)
+ 	if (scaleFlag==1) then
+ 	  rescale(#3)
+ 	  rescale(#4)
+ 	  scaleFlag=0
+ 	endif
+ 	#4[l]=temp405
+ 	#3[l]=temp365
+ 		
+ 	j=j+1
+ 	
+ 	if (mod(j,1000)==0) then
+ 	for p=1 to 1000
+ 	  #1(p)=0
+ 	  #2(p)=0
+ 	next
+ 	j=1
+ 	endif
+ wend
