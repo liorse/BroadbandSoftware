@@ -201,18 +201,19 @@
 				<Property Name="Bld_buildSpecName" Type="Str">Read Concentration Temperature and Pressure</Property>
 				<Property Name="Bld_excludeLibraryItems" Type="Bool">true</Property>
 				<Property Name="Bld_excludePolymorphicVIs" Type="Bool">true</Property>
-				<Property Name="Bld_localDestDir" Type="Path">../builds/NI_AB_PROJECTNAME/Read Concentration Temperature and Pressure</Property>
-				<Property Name="Bld_localDestDirType" Type="Str">relativeToCommon</Property>
+				<Property Name="Bld_localDestDir" Type="Path">/C/Users/DMA2011/YinonsGroupSoftware/Dropbox/ReadConcTempPress</Property>
 				<Property Name="Bld_modifyLibraryFile" Type="Bool">true</Property>
 				<Property Name="Bld_previewCacheID" Type="Str">{DD13D057-72C9-4DEA-B588-893DF17BA7E3}</Property>
 				<Property Name="Destination[0].destName" Type="Str">ReadConcTempPress.exe</Property>
-				<Property Name="Destination[0].path" Type="Path">../builds/NI_AB_PROJECTNAME/Read Concentration Temperature and Pressure/ReadConcTempPress.exe</Property>
+				<Property Name="Destination[0].path" Type="Path">/C/Users/DMA2011/YinonsGroupSoftware/Dropbox/ReadConcTempPress/ReadConcTempPress.exe</Property>
+				<Property Name="Destination[0].path.type" Type="Str">&lt;none&gt;</Property>
 				<Property Name="Destination[0].preserveHierarchy" Type="Bool">true</Property>
 				<Property Name="Destination[0].type" Type="Str">App</Property>
 				<Property Name="Destination[1].destName" Type="Str">Support Directory</Property>
-				<Property Name="Destination[1].path" Type="Path">../builds/NI_AB_PROJECTNAME/Read Concentration Temperature and Pressure/data</Property>
+				<Property Name="Destination[1].path" Type="Path">/C/Users/DMA2011/YinonsGroupSoftware/Dropbox/ReadConcTempPress/data</Property>
+				<Property Name="Destination[1].path.type" Type="Str">&lt;none&gt;</Property>
 				<Property Name="DestinationCount" Type="Int">2</Property>
-				<Property Name="Source[0].itemID" Type="Str">{F4D3DAC0-4869-4ACC-A168-5F4C57041C84}</Property>
+				<Property Name="Source[0].itemID" Type="Str">{9DE2B9A5-99DA-423A-9016-CD4D98FD54E4}</Property>
 				<Property Name="Source[0].type" Type="Str">Container</Property>
 				<Property Name="Source[1].destinationIndex" Type="Int">0</Property>
 				<Property Name="Source[1].itemID" Type="Ref">/My Computer/ReadConcTempPressureVer08.vi</Property>
