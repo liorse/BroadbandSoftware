@@ -1,0 +1,6 @@
+Spectrograph X calibration
+software
+Center wavelength = 365.015
+Micrometer Setting = 91.2538
+hardware
+actual micrometer setting = 100
