@@ -43,9 +43,9 @@ rem set acquisition paratmeters
  rem  FileName$="test"
   
   FilePath$="C:\Users\DMA2011\Desktop\NIR\20131122 AS BAES\\"
-  FileName$="mirror reflectivity test"
+  FileName$="test"
   
-  NumAccumulation = 30 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumAccumulation = 2 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
   ContinousMeasurementFlag =0  : rem 1 continous measurement, 0 single measurement
   NumberofMeasurementinaSingleMeasurement = 3
@@ -526,12 +526,15 @@ for j=1 to NumSeries
 	print "Temperature: "," ", val(left$(Temprature$,instr(Temprature$,",")-1));" deg"
 	print "Timestamp: " + date$() + " " + time$()
 	print " "
+	
+	write (foutput$, SampleName$)
 	write (foutput$,(LineNumber$;"counts 365:", str$(counts365)))
 	write (foutput$,str$(val(LineNumber$) + 1) + "counts 405:" , str$(counts405))
 	write (foutput$,"Concentration: "," ", val(left$(Concentration$,instr(Concentration$,",")-1)); " N/cm^3")
 	write (foutput$,"Pressure: "," ", val(left$(Pressure$,instr(Pressure$,",")-1));" hpascal")
 	write (foutput$,"Temperature: "," ", val(left$(Temprature$,instr(Temprature$,",")-1));" deg")
 	write(foutput$, "Timestamp: " + date$() + " " + time$())
+	write(foutput$, " ")
 	LineNumbers=LineNumbers+2
 	counter=counter+1
 	
