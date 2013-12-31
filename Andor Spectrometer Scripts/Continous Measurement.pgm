@@ -19,6 +19,8 @@ rem 15/10/2013 STD added
 rem 16/10/2013 Fixed Line numbering bug and cleaned the code from previous mean calculation
 rem 20/10/2013 Cleaned up code. Removed #5 temp window
 rem 25/11/2013 Fixed bug that introduced a space when taking measurement earlier than 10 oclock  
+rem 30/12/2013 For ensuring calibration choose center wavelength 366 nm
+rem 31/12/2013 The program takes the zero measurement as reference and displays the difference in the BG window. The output of the program remains the same
  
 rem recieves filename and returns the number of lines in file
 function ~NumberOfLinesInFile(FileName$)
@@ -42,13 +44,13 @@ rem set acquisition paratmeters
  rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20131215 Pahokee BAES405 and CRD\BAES 405 only\\"
  rem  FileName$="test"
   
-  FilePath$="C:\Users\DMA2011\Desktop\NIR\20131225 PSL BAES405&CRD\BAES\\"
-  FileName$="PSL_BAES_pushed"
+  FilePath$="C:\Users\DMA2011\Desktop\NIR\20131230 PSL BAES&CRD\BAES\\"
+  FileName$="PSL_BAES_Lior_test"
   
-  NumAccumulation = 22 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumAccumulation = 1 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
   ContinousMeasurementFlag =0  : rem 1 continous measurement, 0 single measurement
-  NumberofMeasurementinaSingleMeasurement = 3
+  NumberofMeasurementinaSingleMeasurement = 1
   
   f$= FilePath$ + FileName$ + ".txt"
   foutput$ = FilePath$ + FileName$ + "report.txt" 
@@ -62,6 +64,7 @@ rem set acquisition paratmeters
   PurgeLEDside365 = 43.75	  :rem cc/min
   PurgeFiberSide365 = 45.6	  :rem cc/min
   NumberOfPointsInGraph = 3000
+  TakeReferenceFlag = 0 : rem This flag set when taking zero measurement
   
   rem definition of rows which belong to either 405 or 365 cavity
   StartRow365 = 1 :rem 172
@@ -95,17 +98,20 @@ rem set acquisition paratmeters
   if (k==3) then
     print("Now taking Zero_N2 measurement ...")
     SampleName$="Zero_N2"
+    TakeReferenceFlag = 1
   endif
 
 
   if (k==4) then
     print("Now taking Zero_O2 measurement ...")
     SampleName$="Zero_O2"
+    TakeReferenceFlag = 1
   endif
 
   if (k==5) then
     print("Now taking Zero_Air measurement ...")
     SampleName$="Zero_Air"
+    TakeReferenceFlag = 1
   endif
 
 
@@ -136,12 +142,42 @@ rem set acquisition paratmeters
   SetShutter(2, 1)   				     : rem mode 2 - auto, output TTL high 1
   SetShutterTransferTime(0.05)	         : rem 50 ms to open and close
   
+ 
   
-  rem setup user interface
-create(#1,"365 nm Cavity",NumberOfPointsInGraph,1)
+ rem setup user interface
+ if ( IsDataset(3) == 0) then
+   create(#3_ref,"365 nm Cavity",1024,1)
+ endif
+ 
+ if ( IsDataset(4) == 0) then
+   create(#4_ref,"405 nm Cavity",1024,1)
+ endif
+ 
+ create(#1,"365 nm Cavity",NumberOfPointsInGraph,1)
  create(#2,"405 nm Cavity",NumberOfPointsInGraph,1)
  create(#3,"365 nm Cavity",1024,1)
  create(#4,"405 nm Cavity",1024,1)
+ create(#4_bg,"405 nm Cavity",1024,1)
+ create(#3_bg,"365 nm Cavity",1024,1)
+ SetXLabel(#4_bg,2,1)
+ SetXLabel(#3_bg,2,1)
+ scalex(#3_bg,450,687)
+ scalex(#4_bg,450,687)
+ scalex(#3,450,687)
+ scalex(#4,450,687)
+
+
+ 
+ if (TakeReferenceFlag == 1) then
+ 	create(#4_ref,"405 nm Cavity",1024,1)
+ 	create(#3_ref,"365 nm Cavity",1024,1)
+ endif
+ 
+ SetXLabel(#4_ref,2,1)
+ SetXLabel(#3_ref,2,1)
+ scalex(#3_ref,450,687)
+ scalex(#4_ref,450,687)
+ 
  ChangeDisplay(#1,3)
  ChangeDisplay(#2,3)
  ChangeDisplay(#3,3)
@@ -156,12 +192,14 @@ create(#1,"365 nm Cavity",NumberOfPointsInGraph,1)
  SetXLabel(#4,2,1)
  SetXLabel(#3,2,1)
  
+ 
  SetXLabel(#1,5,2)
  SetXLabel(#2,5,2)
  SetXLabel(#1,5,2)
  SetXLabel(#2,5,2)
  scalex(#3,450,687)
  scalex(#4,450,687)
+ 
  scaleFlag=1
  
 rem take background
@@ -257,12 +295,35 @@ update(0)
    	  if (jindex==511) then
    	    counts365=mean(#365_sig,jindex,jindex,1,NumAccumulation)
    	  endif
+   	  
+   	  if (TakeReferenceFlag == 1) then
+   	    #4_ref[jindex]=mean(#405_sig,jindex,jindex,1,NumAccumulation)
+   	    #3_ref[jindex]=mean(#365_sig,jindex,jindex,1,NumAccumulation)
+   	  endif
+   	  
    	  #4[jindex]=mean(#405_sig,jindex,jindex,1,NumAccumulation)
    	  #3[jindex]=mean(#365_sig,jindex,jindex,1,NumAccumulation)
+      
+      rem Substract signal from reference to get true measurement of absorbant
+      #4_bg[jindex]=#4_ref[jindex]-#4[jindex]
+      #3_bg[jindex]=#3_ref[jindex]-#3[jindex]
    	next
-   
+    
   rem Calculate the std 
 update(1)
+ActiveTab(#4,ref)
+rescale(#4_ref)
+ActiveTab(#4,bg)
+rescale(#4_ref)
+ActiveTab(#4,sig)
+rescale(#4_ref)
+ActiveTab(#3,ref)
+rescale(#3_ref)
+ActiveTab(#3,bg)
+rescale(#3_ref)
+ActiveTab(#3,sig)
+rescale(#3_ref)
+
 
 rem find 405 and 365 indices
 delta365 = abs(xcal(#0,1)-365)
@@ -338,6 +399,12 @@ P4= val( right$(coef$,lengthcoef-i-1))
 SetCoefficient(#0,P1,P2,P3,P4)
 SetCoefficient(#4,P1,P2,P3,P4)
 SetCoefficient(#3,P1,P2,P3,P4)
+SetCoefficient(#4_bg,P1,P2,P3,P4)
+SetCoefficient(#3_bg,P1,P2,P3,P4)
+if (TakeReferenceFlag == 1) then
+	SetCoefficient(#4_ref,P1,P2,P3,P4)
+	SetCoefficient(#3_ref,P1,P2,P3,P4)
+endif
  
 rem prepare to write X axis and header
 rem Total length of cavity
