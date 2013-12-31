@@ -39,13 +39,13 @@ rem first make sure 365 (Track 2) is in upper half of the ccd and the 405 is in 
 rem second if you want to change to order in which they print into the file
 rem set acquisition paratmeters
   rem close()
- rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20131122 AS BAES\\"
+ rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20131215 Pahokee BAES405 and CRD\BAES 405 only\\"
  rem  FileName$="test"
   
-  FilePath$="C:\Users\DMA2011\Desktop\NIR\20131122 AS BAES\\"
-  FileName$="test"
+  FilePath$="C:\Users\DMA2011\Desktop\NIR\20131225 PSL BAES405&CRD\BAES\\"
+  FileName$="PSL_BAES_pushed"
   
-  NumAccumulation = 2 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumAccumulation = 22 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
   ContinousMeasurementFlag =0  : rem 1 continous measurement, 0 single measurement
   NumberofMeasurementinaSingleMeasurement = 3
@@ -53,14 +53,14 @@ rem set acquisition paratmeters
   f$= FilePath$ + FileName$ + ".txt"
   foutput$ = FilePath$ + FileName$ + "report.txt" 
   SensorTemp = -50			  :rem celcius
-  TotalCavityLength405 = 79.2 :rem cm
-  TotalCavityLength365 = 79.1 :rem cm
-  FillLength405 = 64.8		  :rem cm
-  FillLength365 = 64.6 	 	  :rem cm
-  PurgeLEDside405 = 38.5	  :rem cc/min
-  PurgeFiberSide405 = 43.6	  :rem cc/min
-  PurgeLEDside365 = 41.5	  :rem cc/min
-  PurgeFiberSide365 = 47.7	  :rem cc/min
+  TotalCavityLength405 = 94.9 :rem cm
+  TotalCavityLength365 = 94.9 :rem cm
+  FillLength405 = 79.7		  :rem cm
+  FillLength365 = 79.7 	 	  :rem cm
+  PurgeLEDside405 = 40	  :rem cc/min
+  PurgeFiberSide405 = 36.6	  :rem cc/min
+  PurgeLEDside365 = 43.75	  :rem cc/min
+  PurgeFiberSide365 = 45.6	  :rem cc/min
   NumberOfPointsInGraph = 3000
   
   rem definition of rows which belong to either 405 or 365 cavity
