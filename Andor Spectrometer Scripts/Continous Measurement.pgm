@@ -45,11 +45,11 @@ rem set acquisition paratmeters
  rem  FileName$="test"
   
   FilePath$="C:\Users\DMA2011\Desktop\NIR\20131230 PSL BAES&CRD\BAES\\"
-  FileName$="PSL_BAES_Lior_test"
+  FileName$="test1"
   
   NumAccumulation = 1 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
-  ContinousMeasurementFlag =0  : rem 1 continous measurement, 0 single measurement
+  ContinousMeasurementFlag = 1  : rem 1 continous measurement, 0 single measurement
   NumberofMeasurementinaSingleMeasurement = 1
   
   f$= FilePath$ + FileName$ + ".txt"
@@ -582,8 +582,10 @@ for j=1 to NumSeries
 	 	      rescale(#4)
 		      scaleFlag=0
     endif
-	 #2[counter]= counts405
-	 #1[counter]= counts365
+	 #2(counter)= counts405
+	 
+	 #1(counter)= counts365
+	 
 	 format(6.2)
 	rem print "Start: " + startdate$ + " " + starttime$
 	print (LineNumber$;"counts 365:", str$(counts365))
@@ -631,7 +633,7 @@ if (ContinousMeasurementFlag==0) then
   InfiniteLoopIndex = InfiniteLoopIndex+1
 endif
 
-rem a delay for 5 minutes
+rem a delay for 1 minutes
 rem for delaycounter=1 to 6
 rem  delay(10000)
 rem next
