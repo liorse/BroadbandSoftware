@@ -45,7 +45,7 @@ rem set acquisition paratmeters
  rem  FileName$="test"
   
   FilePath$="C:\Users\DMA2011\Desktop\NIR\20131230 PSL BAES&CRD\BAES\\"
-  FileName$="test1"
+  FileName$="test2"
   
   NumAccumulation = 1 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
@@ -137,8 +137,8 @@ rem set acquisition paratmeters
  rem  SetNumberTracks(2)		         :rem we have two cavities
  rem  SetMultiTrackHeight(80)             :rem Each track is 4 rows in height
  rem  SetTrackOffset(128)                  :rem Track positions symmetrical
-  SetTemperature(SensorTemp)         : rem Set sensor temperature
-  cooler(1)							 : rem Start the cooler
+ rem SetTemperature(SensorTemp)         : rem Set sensor temperature
+ rem  cooler(1)							 : rem Start the cooler
   SetShutter(2, 1)   				     : rem mode 2 - auto, output TTL high 1
   SetShutterTransferTime(0.05)	         : rem 50 ms to open and close
   
