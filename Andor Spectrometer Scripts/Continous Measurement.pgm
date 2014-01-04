@@ -249,8 +249,7 @@ rem ini to M ON True and M OFF false
 rem take background
 rem SetKinetics(NumExposureTime, NumAccumulation, 0, 1,0)
 SetSingleScan(NumExposureTime)
- SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
- run()
+ 
 
 rem take acquisition
 rem SetKinetics(NumExposureTime, NumAccumulation, 0, NumSeries,0)
@@ -270,8 +269,8 @@ update(0)
 
  for NumExposure=1 to NumAccumulation
  
-  rem  SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
-  rem	run()
+    SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+  	run()
     SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
     run()
  
