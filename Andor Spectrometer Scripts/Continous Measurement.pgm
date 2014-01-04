@@ -45,12 +45,13 @@ rem set acquisition paratmeters
  rem  FileName$="test"
   
   FilePath$="C:\Users\DMA2011\Desktop\NIR\20131230 PSL BAES&CRD\BAES\\"
-  FileName$="test1"
+  FileName$="fastScanTest2014-01-04"
   
-  NumAccumulation =3 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumAccumulation = 22 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
   ContinousMeasurementFlag = 1  : rem 1 continous measurement, 0 single measurement
   NumberofMeasurementinaSingleMeasurement = 1
+  TakeBackgroundFlag = 0 : rem background measurement
   
   f$= FilePath$ + FileName$ + ".txt"
   foutput$ = FilePath$ + FileName$ + "report.txt" 
@@ -264,16 +265,38 @@ create(#365_sig,1024,NumAccumulation)
 MinimizeWindow(#405)
 MinimizeWindow(#365)
 
+rem taking background measurement
+update(0)
+rem if the user forgot to take a background measurement this would save him
+if ( IsDataset(11) == 0) then
+   TakeBackgroundFlag=1
+endif
+
+if (TakeBackgroundFlag==1) then
+  create(#11_sig, "Background",1024,256, NumAccumulation)
+  SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+  for jindex=1 to NumAccumulation
+  	run()
+  	#11_sig{jindex}=#0_bg
+  next
+  end
+endif
+
+
+
 rem adding standard deviation to readout 20131015
 update(0)
 
  for NumExposure=1 to NumAccumulation
  
-    SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
-  	run()
+    rem SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+  	rem run()
     SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
     run()
- 
+    
+    rem remove background
+    #0_sig = #0_sig - #11_sig{NumExposure}
+    
    	for jindex=1 to 1024
    	  #405_sig[jindex,NumExposure]=TotalCounts(#0,jindex,jindex,StartRow405,FinishRow405)
    	  #365_sig[jindex,NumExposure]=TotalCounts(#0,jindex,jindex,StartRow365,FinishRow365)
