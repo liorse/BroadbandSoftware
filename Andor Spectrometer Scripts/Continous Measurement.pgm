@@ -45,9 +45,9 @@ rem set acquisition paratmeters
  rem  FileName$="test"
   
   FilePath$="C:\Users\DMA2011\Desktop\NIR\20131230 PSL BAES&CRD\BAES\\"
-  FileName$="test2"
+  FileName$="BackgroundTest2013-01-04"
   
-  NumAccumulation = 1 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumAccumulation =22 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
   ContinousMeasurementFlag = 1  : rem 1 continous measurement, 0 single measurement
   NumberofMeasurementinaSingleMeasurement = 1
@@ -139,7 +139,7 @@ rem set acquisition paratmeters
  rem  SetTrackOffset(128)                  :rem Track positions symmetrical
  rem SetTemperature(SensorTemp)         : rem Set sensor temperature
  rem  cooler(1)							 : rem Start the cooler
-  SetShutter(2, 1)   				     : rem mode 2 - auto, output TTL high 1
+  SetShutter(0, 1)   				     : rem mode 2 - auto, output TTL high 1
   SetShutterTransferTime(0.05)	         : rem 50 ms to open and close
   
  
@@ -204,9 +204,12 @@ rem set acquisition paratmeters
  
 rem take background
 rem SetKinetics(NumExposureTime, NumAccumulation, 0, 1,0)
-SetSingleScan(NumExposureTime)
-SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
-run()
+if ( IsDataset(0) == 0) then
+    SetSingleScan(NumExposureTime)
+	SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+	run()
+endif
+
 movewindow(#0,900,450,450,300)
 rem to take continous measurements I am placing an infinite loop here
 InfiniteLoopIndex = 1
@@ -267,8 +270,8 @@ update(0)
 
  for NumExposure=1 to NumAccumulation
  
-    SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
-  	run()
+  rem  SetAcquisitionType(1)              :rem 0= Signal 1= background, 2 = reference
+  rem	run()
     SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
     run()
  
