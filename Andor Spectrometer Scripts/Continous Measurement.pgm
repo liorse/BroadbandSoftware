@@ -21,6 +21,7 @@ rem 20/10/2013 Cleaned up code. Removed #5 temp window
 rem 25/11/2013 Fixed bug that introduced a space when taking measurement earlier than 10 oclock  
 rem 30/12/2013 For ensuring calibration choose center wavelength 366 nm
 rem 31/12/2013 The program takes the zero measurement as reference and displays the difference in the BG window. The output of the program remains the same
+rem 13/01/2014 added cropleft and cropright to exclude writing to the file non relevant wavelengths
  
 rem recieves filename and returns the number of lines in file
 function ~NumberOfLinesInFile(FileName$)
@@ -41,16 +42,16 @@ rem first make sure 365 (Track 2) is in upper half of the ccd and the 405 is in 
 rem second if you want to change to order in which they print into the file
 rem set acquisition paratmeters
   rem close()
- rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20131215 Pahokee BAES405 and CRD\BAES 405 only\\"
+ rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20140112 PSL BAES & CRD\BAES\\"
  rem  FileName$="test"
   
-  FilePath$="C:\Users\DMA2011\Desktop\NIR\20131230 PSL BAES&CRD\BAES\\"
-  FileName$="test1"
+  FilePath$="C:\Users\DMA2011\Desktop\NIR\20140112 PSL BAES & CRD\BAES\\"
+  FileName$="test"
   
-  NumAccumulation =3 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumAccumulation =2 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
-  ContinousMeasurementFlag = 1  : rem 1 continous measurement, 0 single measurement
-  NumberofMeasurementinaSingleMeasurement = 1
+  ContinousMeasurementFlag = 0  : rem 1 continous measurement, 0 single measurement
+  NumberofMeasurementinaSingleMeasurement = 3
   
   f$= FilePath$ + FileName$ + ".txt"
   foutput$ = FilePath$ + FileName$ + "report.txt" 
@@ -65,7 +66,8 @@ rem set acquisition paratmeters
   PurgeFiberSide365 = 45.6	  :rem cc/min
   NumberOfPointsInGraph = 3000
   TakeReferenceFlag = 0 : rem This flag set when taking zero measurement
-  
+  cropleft = 466			  : rem the pixel number from which to crop wavelength file results left
+  cropright = 655			  : rem the pixel number from which to crop wavelength file results right	
   rem definition of rows which belong to either 405 or 365 cavity
   StartRow365 = 1 :rem 172
   FinishRow365 = 47 :rem 256
@@ -285,7 +287,7 @@ update(0)
   StdStr405$=""
   MeanStr365$=""
   StdStr365$=""
-    for jindex=1 to 1024
+    for jindex=cropleft to cropright
    	  MeanStr405$= MeanStr405$ + str$(mean(#405_sig,jindex,jindex,1,NumAccumulation))+ ", "
    	  StdStr405$ = StdStr405$ + str$(StDev(#405_sig,jindex,jindex,1,NumAccumulation))+ ", "
    	  MeanStr365$= MeanStr365$ + str$(mean(#365_sig,jindex,jindex,1,NumAccumulation))+ ", "
@@ -434,7 +436,7 @@ if (exist(f$) != 1) then
 	
 	rem write x coordinate which are the wavelength in nm
 	Cal$ = ""
-	for i = 1 to 1024
+	for i = cropleft to cropright
   		Cal$ = Cal$ + str$(xcal(#0,i)) + ", "
 	next
 	write(f$, Cal$)
@@ -617,6 +619,7 @@ for j=1 to NumSeries
  	counter=1
  	endif
 	
+	rem At this point I write to the main file!!!
     write(f$, Cavity365$)
 	write(f$, Cavity365Std$)
 	
