@@ -45,10 +45,10 @@ rem set acquisition paratmeters
  rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20140112 PSL BAES & CRD\BAES\\"
  rem  FileName$="test"
   
-  FilePath$="C:\Users\DMA2011\Desktop\NIR\20140112 PSL BAES & CRD\BAES\\"
-  FileName$="test"
+  FilePath$="C:\Users\DMA2011\Desktop\NIR\20140127 BAES & CRD\BAES\\"
+  FileName$="20140128 O2 in He"
   
-  NumAccumulation =2 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumAccumulation =15 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
   ContinousMeasurementFlag = 0  : rem 1 continous measurement, 0 single measurement
   NumberofMeasurementinaSingleMeasurement = 3
@@ -82,8 +82,8 @@ rem set acquisition paratmeters
   NumberOfLinesInHeader = 15
   
   rem Enter which type measurment is required
-  x=key("Please select type of measurement \\1 - N2; 2 - He; 3 - Zero_N2; 4 - Zero_O2 \\5 - Zero_Air; 6 - Sample Name")
-  if (x>='1') and (x<='6') then
+  x=key("Please select type of measurement \\1 - N2; 2 - He; 3 - Zero_N2; 4 - Zero_O2 \\5 - Zero_Air; 6 - Sample Name; 7 - Zero_He")
+  if (x>='1') and (x<='7') then
     k=val(chr$(x))
   endif
 
@@ -122,6 +122,13 @@ rem set acquisition paratmeters
     outputSampleName$ ="Now taking sample " + SampleName$ + " measurement ..."
     print(outputSampleName$)
   endif
+  
+  if (k==7) then
+    print("Now taking Zero_He measurement ...")
+    SampleName$="Zero_He"
+    TakeReferenceFlag = 1
+  endif
+
   rem End of which type measurement is required
   
   
