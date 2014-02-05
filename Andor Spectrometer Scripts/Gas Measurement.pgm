@@ -22,7 +22,8 @@ rem 25/11/2013 Fixed bug that introduced a space when taking measurement earlier
 rem 30/12/2013 For ensuring calibration choose center wavelength 366 nm
 rem 31/12/2013 The program takes the zero measurement as reference and displays the difference in the BG window. The output of the program remains the same
 rem 13/01/2014 added cropleft and cropright to exclude writing to the file non relevant wavelengths
- 
+rem 05/02/2014 Removed std deviations lines 
+
 rem recieves filename and returns the number of lines in file
 function ~NumberOfLinesInFile(FileName$)
 rem pseudo read
@@ -43,15 +44,15 @@ rem second if you want to change to order in which they print into the file
 rem set acquisition paratmeters
   rem close()
  rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20140203 N2 rayliegh measurement\\"
- rem  FileName$="test"
+ rem  FileName$="test1"
   
   FilePath$="C:\Users\DMA2011\Desktop\NIR\20140203 N2 rayliegh measurement\\"
-  FileName$="20140129 N2 with pressure"
+  FileName$="test3"
   
-  NumAccumulation =15 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  NumAccumulation =1 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
-  ContinousMeasurementFlag = 0  : rem 1 continous measurement, 0 single measurement
-  NumberofMeasurementinaSingleMeasurement = 3
+  ContinousMeasurementFlag = 1  : rem 1 continous measurement, 0 single measurement
+  NumberofMeasurementinaSingleMeasurement = 1
   
   f$= FilePath$ + FileName$ + ".txt"
   foutput$ = FilePath$ + FileName$ + "report.txt" 
@@ -468,7 +469,7 @@ for j=1 to NumSeries
 	rem Line number
 	rem Calculate Line Number
 	
-	LineNumber$=str$((LineNumbers-NumberOfLinesInHeader)/2)
+	LineNumber$=str$((LineNumbers-NumberOfLinesInHeader))
 	Cavity365$= Cavity365$ + LineNumber$ + ", "
 	Cavity405$= Cavity405$ + str$(val(LineNumber$)+1) + ", "
 	 
@@ -628,10 +629,10 @@ for j=1 to NumSeries
 	
 	rem At this point I write to the main file!!!
     write(f$, Cavity365$)
-	write(f$, Cavity365Std$)
+	rem write(f$, Cavity365Std$)
 	
 	write(f$, Cavity405$)
-	write(f$, Cavity405Std$)
+	rem write(f$, Cavity405Std$)
 	Cavity405$=""
 	Cavity365$=""
 	
