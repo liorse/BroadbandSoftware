@@ -43,11 +43,11 @@ rem first make sure 365 (Track 2) is in upper half of the ccd and the 405 is in 
 rem second if you want to change to order in which they print into the file
 rem set acquisition paratmeters
   rem close()
- rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20140203 N2 rayliegh measurement\\"
+ rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20140205 N2 rayliegh measurement\\"
  rem  FileName$="test1"
   
-  FilePath$="C:\Users\DMA2011\Desktop\NIR\20140203 N2 rayliegh measurement\\"
-  FileName$="test3"
+  FilePath$="C:\Users\DMA2011\Desktop\NIR\20140205 N2 rayliegh measurement\\"
+  FileName$="20140211 N2Ray_DownToRoomPress"
   
   NumAccumulation =1 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec

@@ -6,6 +6,9 @@
   FinishRow405 = 256
   StartRow365 = 1
   FinishRow365 = 47
+  CenterWavelengthCavity1=375
+  CenterWavelengthCavity2=405
+  
   SetSingleScan(NumExposureTime)
   
   SetAcquisitionType(0)              :rem 0= Signal 1= background, 2 = reference
@@ -98,23 +101,23 @@ SetCoefficient(#3,P1,P2,P3,P4)
  i=1
  j=1
  rem for 405 find the index automatically
- rem for 365 find the index automatically
+ rem for 375 find the index automatically
  
-delta365 = abs(xcal(#0,1)-365)
+delta365 = abs(xcal(#0,1)-CenterWavelengthCavity1)
 i365=1
-delta405 = abs(xcal(#0,1)-405)
+delta405 = abs(xcal(#0,1)-CenterWavelengthCavity2)
 i405=1
 
 for t = 2 to 1024
 
-if (abs(xcal(#0,t)-365)<delta365) then
+if (abs(xcal(#0,t)-CenterWavelengthCavity1)<delta365) then
   k365=t
-  delta365=abs(xcal(#0,t)-365)
+  delta365=abs(xcal(#0,t)-CenterWavelengthCavity1)
 endif
 
-if (abs(xcal(#0,t)-405)<delta405) then
+if (abs(xcal(#0,t)-CenterWavelengthCavity2)<delta405) then
   k405=t
-  delta405=abs(xcal(#0,t)-405)
+  delta405=abs(xcal(#0,t)-CenterWavelengthCavity2)
 endif
 
 next  
@@ -143,8 +146,8 @@ scaleFlag=1
  	  scaledata(#2,temp405*0.5,temp405*1.5)
  	
  	endif
- 	print str$(temp365) + " from 365"
- 	print str$(temp405) + " from 405"
+ 	print str$(temp365) + " from" + str$(CenterWavelengthCavity1)
+ 	print str$(temp405) + " from" + str$(CenterWavelengthCavity2)
  	
  	 update(0)
  	rem Show signals

@@ -41,14 +41,16 @@ return
 rem first make sure 365 (Track 2) is in upper half of the ccd and the 405 is in the lower part of the CCD (Track 1)
 rem second if you want to change to order in which they print into the file
 rem set acquisition paratmeters
-  rem close()
- rem FilePath$="C:\Users\DMA2011\Desktop\NIR\20140203 N2 rayliegh measurement\\"
- rem  FileName$="test"
+rem close()
+ 
   
-  FilePath$="C:\Users\DMA2011\Desktop\NIR\20140203 N2 rayliegh measurement\\"
-  FileName$="20140129 N2 with pressure"
+  FilePath$="C:\Users\DMA2011\Desktop\NIR\\"
+  FileName$="Test375"
   
-  NumAccumulation =15 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
+  CenterWavelengthCavity1=375
+  CenterWavelengthCavity2=405
+  
+  NumAccumulation =1 : rem 22          :rem To avoid accumulation problem in the andor software, I am changing to single measurement in a loop of NumAccumulation (changed at 28/10/2012 2:55 PM)
   NumExposureTime =0.3      :rem sec
   ContinousMeasurementFlag = 0  : rem 1 continous measurement, 0 single measurement
   NumberofMeasurementinaSingleMeasurement = 3
@@ -66,8 +68,11 @@ rem set acquisition paratmeters
   PurgeFiberSide365 = 45.6	  :rem cc/min
   NumberOfPointsInGraph = 3000
   TakeReferenceFlag = 0 : rem This flag set when taking zero measurement
-  cropleft = 466			  : rem the pixel number from which to crop wavelength file results left
-  cropright = 655			  : rem the pixel number from which to crop wavelength file results right	
+  cropleft = 460			  : rem the pixel number from which to crop wavelength file results left
+  cropright = 750			  : rem the pixel number from which to crop wavelength file results right	
+  rem cropleft = 1			  : rem the pixel number from which to crop wavelength file results left
+  rem   cropright = 1024			  : rem the pixel number from which to crop wavelength file results right	
+  
   rem definition of rows which belong to either 405 or 365 cavity
   StartRow365 = 1 :rem 172
   FinishRow365 = 47 :rem 256
@@ -289,6 +294,27 @@ update(0)
    	next
  
   next
+  
+  rem find 405 and 365 indices
+delta365 = abs(xcal(#0,1)-CenterWavelengthCavity1)
+i365=1
+delta405 = abs(xcal(#0,1)-CenterWavelengthCavity2)
+i405=1
+
+for i = 2 to 1024
+
+ if (abs(xcal(#0,i)-CenterWavelengthCavity1)<delta365) then
+   k365=i
+   delta365=abs(xcal(#0,i)-CenterWavelengthCavity1)
+ endif
+
+ if (abs(xcal(#0,i)-CenterWavelengthCavity2)<delta405) then
+   k405=i
+   delta405=abs(xcal(#0,i)-CenterWavelengthCavity2)
+ endif
+
+next  
+
   rem Calculate the mean and std
   MeanStr405$=""
   StdStr405$=""
@@ -299,11 +325,11 @@ update(0)
    	  StdStr405$ = StdStr405$ + str$(StDev(#405_sig,jindex,jindex,1,NumAccumulation))+ ", "
    	  MeanStr365$= MeanStr365$ + str$(mean(#365_sig,jindex,jindex,1,NumAccumulation))+ ", "
    	  StdStr365$ = StdStr365$ + str$(StDev(#365_sig,jindex,jindex,1,NumAccumulation))+ ", "
-   	  if (jindex==589) then
+   	  if (jindex==k405) then
    	   counts405=mean(#405_sig,jindex,jindex,1,NumAccumulation)
    	  endif
    	  
-   	  if (jindex==511) then
+   	  if (jindex==k365) then
    	    counts365=mean(#365_sig,jindex,jindex,1,NumAccumulation)
    	  endif
    	  
@@ -336,25 +362,7 @@ ActiveTab(#3,sig)
 rescale(#3_ref)
 
 
-rem find 405 and 365 indices
-delta365 = abs(xcal(#0,1)-365)
-i365=1
-delta405 = abs(xcal(#0,1)-405)
-i405=1
 
-for i = 2 to 1024
-
- if (abs(xcal(#0,i)-365)<delta365) then
-   k365=i
-   delta365=abs(xcal(#0,i)-365)
- endif
-
- if (abs(xcal(#0,i)-405)<delta405) then
-   k405=i
-   delta405=abs(xcal(#0,i)-405)
- endif
-
-next  
 
 rem change x axis according to calibration according to the outside program
 coef$ = coefficient$(#0)
@@ -599,8 +607,8 @@ for j=1 to NumSeries
 	 
 	 format(6.2)
 	rem print "Start: " + startdate$ + " " + starttime$
-	print (LineNumber$;"counts 365:", str$(counts365))
-	print str$(val(LineNumber$) + 1) + "counts 405:" , str$(counts405)
+	print (LineNumber$;"counts",str$(CenterWavelengthCavity1),":", str$(counts365))
+	print str$(val(LineNumber$) + 1) + "counts",str$(CenterWavelengthCavity2),":", str$(counts405)
 	print "Concentration: "," ", val(left$(Concentration$,instr(Concentration$,",")-1)); " N/cm^3"
 	print "Pressure: "," ", val(left$(Pressure$,instr(Pressure$,",")-1));" hpascal"
 	print "Temperature: "," ", val(left$(Temprature$,instr(Temprature$,",")-1));" deg"
@@ -608,8 +616,8 @@ for j=1 to NumSeries
 	print " "
 	
 	write (foutput$, SampleName$)
-	write (foutput$,(LineNumber$;"counts 365:", str$(counts365)))
-	write (foutput$,str$(val(LineNumber$) + 1) + "counts 405:" , str$(counts405))
+	write (foutput$,(LineNumber$;"counts",str$(CenterWavelengthCavity1),":", str$(counts365)))
+	write (foutput$,str$(val(LineNumber$) + 1) + "counts",str$(CenterWavelengthCavity1),":", str$(counts405))
 	write (foutput$,"Concentration: "," ", val(left$(Concentration$,instr(Concentration$,",")-1)); " N/cm^3")
 	write (foutput$,"Pressure: "," ", val(left$(Pressure$,instr(Pressure$,",")-1));" hpascal")
 	write (foutput$,"Temperature: "," ", val(left$(Temprature$,instr(Temprature$,",")-1));" deg")
